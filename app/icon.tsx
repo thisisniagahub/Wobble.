@@ -22,7 +22,7 @@ export default function Icon() {
           border: '2px solid rgba(255,255,255,0.2)'
         }}
       >
-        W.
+        W<span style={{ color: '#FF6B9D' }}>.</span>
       </div>
     ),
     {

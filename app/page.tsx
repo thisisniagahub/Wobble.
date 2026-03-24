@@ -174,7 +174,9 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
          transition={{ duration: 1, ease: "easeOut" }}
          className="text-white text-6xl md:text-8xl font-black tracking-tighter"
-       >WOBBLE.</motion.h1>
+       >
+         Wobble<span className="text-[#FF6B9D]">.</span>
+       </motion.h1>
        <motion.div 
          className="h-[2px] bg-white mt-8"
          initial={{ width: 0 }}
