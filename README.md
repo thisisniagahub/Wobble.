@@ -20,4 +20,10 @@ Prerequisite: Node.js 20+
 
 ## Environment Variables
 
-No environment variables are required for the current landing page.
+Set these before deploying if you want direct WhatsApp routing and Telegram login:
+
+- `NEXT_PUBLIC_WOBBLE_SITE_URL`
+- `NEXT_PUBLIC_WOBBLE_WHATSAPP_NUMBER`
+- `NEXT_PUBLIC_WOBBLE_TELEGRAM_BOT_USERNAME`
+- `WOBBLE_TELEGRAM_BOT_TOKEN`
+- `WOBBLE_TELEGRAM_SESSION_SECRET`

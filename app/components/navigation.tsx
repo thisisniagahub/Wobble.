@@ -34,8 +34,9 @@ export function Navigation({
     { id: 'home', label: 'Flavours' },
     { id: 'all-flavors', label: 'All Flavours' },
     { id: 'how-it-works', label: 'How it works' },
-    { id: 'faq', label: 'FAQ' },
     { id: 'gift', label: 'Gift' },
+    { id: 'telegram', label: 'Telegram' },
+    { id: 'faq', label: 'FAQ' },
   ];
 
   return (

@@ -20,6 +20,7 @@ interface GiftScreenProps {
     price: string;
     allergens: string[];
   };
+  onNavigate: (screen: string) => void;
   whatsappGiftHref: string;
 }
 
@@ -55,7 +56,11 @@ const giftOptions = [
   }
 ];
 
-export function GiftScreen({ currentFlavor, whatsappGiftHref }: GiftScreenProps) {
+export function GiftScreen({
+  currentFlavor,
+  onNavigate,
+  whatsappGiftHref,
+}: GiftScreenProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -93,23 +98,35 @@ export function GiftScreen({ currentFlavor, whatsappGiftHref }: GiftScreenProps)
           Encased in premium ivory cardstock, finished with a hand-tied silk ribbon. A gift that wobbles into the heart.
         </p>
         
-        <motion.a
-          href={whatsappGiftHref}
-          target="_blank"
-          rel="noreferrer"
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          className="relative overflow-hidden bg-white text-black px-12 py-6 rounded-full font-black uppercase tracking-[0.2em] text-xs inline-flex items-center justify-center gap-4 shadow-[0_20px_50px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_70px_rgba(255,255,255,0.4)] transition-all duration-500 group"
-        >
-          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/10 to-transparent group-hover:animate-shimmer" />
-          <span className="relative z-10 flex items-center gap-4">
-            Curate Your Box
-            <div className="w-8 h-px bg-black/20" />
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </span>
-        </motion.a>
+        <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
+          <motion.a
+            href={whatsappGiftHref}
+            target="_blank"
+            rel="noreferrer"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="relative overflow-hidden bg-white text-black px-12 py-6 rounded-full font-black uppercase tracking-[0.2em] text-xs inline-flex items-center justify-center gap-4 shadow-[0_20px_50px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_70px_rgba(255,255,255,0.4)] transition-all duration-500 group"
+          >
+            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/10 to-transparent group-hover:animate-shimmer" />
+            <span className="relative z-10 flex items-center gap-4">
+              Curate Your Box
+              <div className="w-8 h-px bg-black/20" />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </span>
+          </motion.a>
+
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onNavigate("telegram")}
+            className="inline-flex items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-6 text-xs font-black uppercase tracking-[0.2em] text-white backdrop-blur-xl"
+          >
+            login with telegram
+          </motion.button>
+        </div>
       </motion.div>
 
       {/* Luxury Box Options */}

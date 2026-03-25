@@ -9,6 +9,7 @@ interface FAQScreenProps {
     bgColor: string;
     accentColor: string;
   };
+  whatsappSupportHref: string;
 }
 
 const faqs = [
@@ -34,7 +35,10 @@ const faqs = [
   }
 ];
 
-export function FaqScreen({ currentFlavor }: FAQScreenProps) {
+export function FaqScreen({
+  currentFlavor,
+  whatsappSupportHref,
+}: FAQScreenProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
@@ -139,7 +143,7 @@ export function FaqScreen({ currentFlavor }: FAQScreenProps) {
           className="mt-16 text-center"
         >
           <p className="text-sm text-white/40 uppercase tracking-[0.2em] font-bold">
-            Still have questions? <a href="https://wa.me/?text=Hi%20Wobble" target="_blank" rel="noopener noreferrer" className="text-white hover:underline underline-offset-4">Chat with us on WhatsApp</a>.
+            Still have questions? <a href={whatsappSupportHref} target="_blank" rel="noopener noreferrer" className="text-white hover:underline underline-offset-4">Chat with us on WhatsApp</a>.
           </p>
         </motion.div>
 

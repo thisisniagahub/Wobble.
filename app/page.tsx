@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { buildWhatsAppHref } from '@/lib/site-config';
 import { Navigation } from './components/navigation';
 import { BackgroundBars } from './components/background-bars';
 import { HomeScreen } from './components/screens/home-screen';
@@ -9,6 +10,7 @@ import { HowItWorksScreen } from './components/screens/how-it-works-screen';
 import { GiftScreen } from './components/screens/gift-screen';
 import { AllFlavorsScreen } from './components/screens/all-flavors-screen';
 import { FaqScreen } from './components/screens/faq-screen';
+import { TelegramScreen } from './components/screens/telegram-screen';
 
 /** System Level Web Audio Context for Tactile Pro Max interactions */
 const playPopSound = () => {
@@ -37,7 +39,7 @@ const playPopSound = () => {
   }
 };
 
-type Screen = 'home' | 'all-flavors' | 'how-it-works' | 'gift' | 'faq';
+type Screen = 'home' | 'all-flavors' | 'how-it-works' | 'gift' | 'telegram' | 'faq';
 
 const flavors = [
   {
@@ -126,8 +128,18 @@ const flavors = [
   }
 ];
 
-const whatsappOrderHref = 'https://wa.me/?text=Hi%20Wobble%2C%20saya%20nak%20order%20panna%20cotta.';
-const whatsappGiftHref = 'https://wa.me/?text=Hi%20Wobble%2C%20saya%20nak%20tempah%20gift%20box%20panna%20cotta.';
+const allowedScreens: Screen[] = [
+  'home',
+  'all-flavors',
+  'how-it-works',
+  'gift',
+  'telegram',
+  'faq',
+];
+
+const whatsappOrderHref = buildWhatsAppHref('Hi Wobble, saya nak order panna cotta.');
+const whatsappGiftHref = buildWhatsAppHref('Hi Wobble, saya nak tempah gift box panna cotta.');
+const whatsappSupportHref = buildWhatsAppHref('Hi Wobble, saya ada beberapa soalan sebelum order.');
 
 // Ghost text component for home screen
 const GhostText = ({ 
@@ -188,7 +200,17 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
 };
 
 export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
+  const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
+    if (typeof window === 'undefined') {
+      return 'home';
+    }
+
+    const requestedScreen = new URLSearchParams(window.location.search).get('screen');
+
+    return requestedScreen && allowedScreens.includes(requestedScreen as Screen)
+      ? (requestedScreen as Screen)
+      : 'home';
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [direction, setDirection] = useState(1);
@@ -229,7 +251,28 @@ export default function Home() {
   }, [currentIndex, handleFlavorChange]);
 
   const navigateToScreen = useCallback((screen: string) => {
-    setCurrentScreen(screen as Screen);
+    const nextScreen = allowedScreens.includes(screen as Screen)
+      ? (screen as Screen)
+      : 'home';
+
+    setCurrentScreen(nextScreen);
+
+    if (typeof window !== 'undefined') {
+      const nextUrl = new URL(window.location.href);
+
+      if (nextScreen === 'home') {
+        nextUrl.searchParams.delete('screen');
+      } else {
+        nextUrl.searchParams.set('screen', nextScreen);
+      }
+
+      if (nextScreen !== 'telegram') {
+        nextUrl.searchParams.delete('telegram');
+      }
+
+      window.history.replaceState(null, '', nextUrl);
+    }
+
     playPopSound();
   }, []);
 
@@ -289,6 +332,7 @@ export default function Home() {
           key={currentFlavor.id} 
           color={
             currentScreen === 'home' ? currentFlavor.bgColor :
+            currentScreen === 'telegram' ? '#111827' :
             currentScreen === 'how-it-works' ? '#1A1A1A' : '#3D153D'
           } 
         />
@@ -341,7 +385,16 @@ export default function Home() {
             <GiftScreen
               key="gift"
               currentFlavor={currentFlavor}
+              onNavigate={navigateToScreen}
               whatsappGiftHref={whatsappGiftHref}
+            />
+          )}
+
+          {currentScreen === 'telegram' && (
+            <TelegramScreen
+              key="telegram"
+              onNavigate={navigateToScreen}
+              whatsappOrderHref={whatsappOrderHref}
             />
           )}
 
@@ -349,6 +402,7 @@ export default function Home() {
             <FaqScreen
               key="faq"
               currentFlavor={currentFlavor}
+              whatsappSupportHref={whatsappSupportHref}
             />
           )}
         </AnimatePresence>
