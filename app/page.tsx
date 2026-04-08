@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { buildWhatsAppHref } from '@/lib/site-config';
 import { Navigation } from './components/navigation';
@@ -13,28 +13,37 @@ import { FaqScreen } from './components/screens/faq-screen';
 import { TelegramScreen } from './components/screens/telegram-screen';
 
 /** System Level Web Audio Context for Tactile Pro Max interactions */
+let _audioCtx: AudioContext | null = null;
+const getAudioContext = () => {
+  if (typeof window === 'undefined') return null;
+  if (!_audioCtx) {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return null;
+    _audioCtx = new AudioCtx();
+  }
+  return _audioCtx;
+};
+
 const playPopSound = () => {
-  if (typeof window === 'undefined') return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
   try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    
+
     osc.type = 'sine';
     osc.frequency.setValueAtTime(400, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
-    
+
     gain.gain.setValueAtTime(0, ctx.currentTime);
     gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-    
+
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.1);
-  } catch (e) {
+  } catch {
     // Ignore audio errors if user hasn't interacted with document yet
   }
 };
@@ -141,6 +150,20 @@ const whatsappOrderHref = buildWhatsAppHref('Hi Wobble, saya nak order panna cot
 const whatsappGiftHref = buildWhatsAppHref('Hi Wobble, saya nak tempah gift box panna cotta.');
 const whatsappSupportHref = buildWhatsAppHref('Hi Wobble, saya ada beberapa soalan sebelum order.');
 
+const buildFlavorWhatsAppHref = (flavorName: string) =>
+  buildWhatsAppHref(
+    `Hi Wobble, saya nak order ${flavorName}. Boleh share next available delivery slot untuk KL / Selangor?`,
+  );
+
+const SCREEN_TITLES: Record<Screen, string> = {
+  home: 'Home',
+  'all-flavors': 'All Flavors',
+  'how-it-works': 'How It Works',
+  gift: 'Gift',
+  telegram: 'Telegram',
+  faq: 'FAQ',
+};
+
 // Ghost text component for home screen
 const GhostText = ({ 
   currentScreen, 
@@ -149,7 +172,7 @@ const GhostText = ({
   currentScreen: Screen, 
   currentFlavor: typeof flavors[0] 
 }) => (
-  <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none z-0">
+  <div className="absolute inset-0 hidden items-center justify-center overflow-hidden pointer-events-none z-0 md:flex">
     <AnimatePresence mode="wait">
       {currentScreen === 'home' && (
         <motion.h1
@@ -170,10 +193,16 @@ const GhostText = ({
 );
 
 const Preloader = ({ onComplete }: { onComplete: () => void }) => {
+  const onCompleteRef = useRef(onComplete);
+
   useEffect(() => {
-    const timer = setTimeout(onComplete, 1800);
+    onCompleteRef.current = onComplete;
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => onCompleteRef.current(), 1800);
     return () => clearTimeout(timer);
-  }, [onComplete]);
+  }, []);
 
   return (
     <motion.div 
@@ -283,8 +312,7 @@ export default function Home() {
     if (currentScreen === 'home') {
       document.title = `${currentFlavor.name} | ${baseTitle}`;
     } else {
-      const screenTitle = currentScreen.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-      document.title = `${screenTitle} | ${baseTitle}`;
+      document.title = `${SCREEN_TITLES[currentScreen]} | ${baseTitle}`;
     }
   }, [currentIndex, currentScreen]);
 
@@ -304,16 +332,26 @@ export default function Home() {
   }, [currentIndex]);
 
   // Auto-rotate flavors on home screen
+  const handleNextRef = useRef(handleNext);
+
+  useEffect(() => {
+    handleNextRef.current = handleNext;
+  });
+
   useEffect(() => {
     if (!isHovered && currentScreen === 'home' && !isTransitioning) {
-      timerRef.current = setInterval(handleNext, 5000);
+      timerRef.current = setInterval(() => handleNextRef.current(), 5000);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isHovered, currentScreen, isTransitioning, handleNext]);
+  }, [isHovered, currentScreen, isTransitioning]);
 
   const currentFlavor = flavors[currentIndex];
+  const currentFlavorWhatsappHref = useMemo(
+    () => buildFlavorWhatsAppHref(currentFlavor.name),
+    [currentFlavor.name],
+  );
 
   return (
     <>
@@ -364,6 +402,8 @@ export default function Home() {
               isTransitioning={isTransitioning}
               onFlavorSelect={handleFlavorChange}
               onNavigate={navigateToScreen}
+              whatsappOrderHref={whatsappOrderHref}
+              whatsappFlavorHref={currentFlavorWhatsappHref}
             />
           )}
 

@@ -1,11 +1,42 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { siteConfig } from "@/lib/site-config";
+import { normalizeTelegramUsername, siteConfig } from "@/lib/site-config";
 
 export const runtime = "nodejs";
 
 const COOKIE_NAME = "wobble_telegram_session";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
+// Cached at module scope — env vars are immutable during server lifetime
+const BOT_TOKEN = (
+  process.env.WOBBLE_TELEGRAM_BOT_TOKEN ||
+  process.env.TELEGRAM_BOT_TOKEN ||
+  ""
+).trim();
+
+const BOT_USERNAME = normalizeTelegramUsername(
+  process.env.WOBBLE_TELEGRAM_BOT_USERNAME ||
+    process.env.TELEGRAM_BOT_USERNAME ||
+    process.env.NEXT_PUBLIC_WOBBLE_TELEGRAM_BOT_USERNAME ||
+    "",
+);
+
+const SESSION_SECRET = (
+  process.env.WOBBLE_TELEGRAM_SESSION_SECRET ||
+  process.env.TELEGRAM_AUTH_SESSION_SECRET ||
+  BOT_TOKEN
+).trim();
+
+const TELEGRAM_CONFIG = {
+  botUsername: BOT_USERNAME,
+  configured: Boolean(BOT_USERNAME && BOT_TOKEN),
+  configMessage:
+    !BOT_USERNAME && !BOT_TOKEN
+      ? "Telegram login perlukan bot username dan bot token pada deploy environment."
+      : !BOT_USERNAME
+        ? "Telegram bot username belum diisi. Set WOBBLE_TELEGRAM_BOT_USERNAME, TELEGRAM_BOT_USERNAME, atau NEXT_PUBLIC_WOBBLE_TELEGRAM_BOT_USERNAME."
+        : "Telegram bot token belum diisi pada server. Set WOBBLE_TELEGRAM_BOT_TOKEN atau TELEGRAM_BOT_TOKEN untuk aktifkan login.",
+};
 
 type TelegramUser = {
   id: number;
@@ -17,19 +48,22 @@ type TelegramUser = {
 };
 
 function getBotToken() {
-  return (
-    process.env.WOBBLE_TELEGRAM_BOT_TOKEN ||
-    process.env.TELEGRAM_BOT_TOKEN ||
-    ""
-  ).trim();
+  return BOT_TOKEN;
+}
+
+function getBotUsername() {
+  return BOT_USERNAME;
 }
 
 function getSessionSecret() {
-  return (
-    process.env.WOBBLE_TELEGRAM_SESSION_SECRET ||
-    process.env.TELEGRAM_AUTH_SESSION_SECRET ||
-    getBotToken()
-  ).trim();
+  return SESSION_SECRET;
+}
+
+function getTelegramRuntimeConfig() {
+  if (!BOT_USERNAME && !BOT_TOKEN) {
+    return { botUsername: "", configured: false, configMessage: TELEGRAM_CONFIG.configMessage };
+  }
+  return TELEGRAM_CONFIG;
 }
 
 function getCookieOptions(request: NextRequest) {
@@ -160,11 +194,13 @@ export async function GET(request: NextRequest) {
 
   if (action === "session") {
     const user = decodeSession(request.cookies.get(COOKIE_NAME)?.value);
+    const telegramConfig = getTelegramRuntimeConfig();
 
     return NextResponse.json({
       authenticated: Boolean(user),
-      configured: Boolean(getBotToken() && siteConfig.telegramBotUsername),
-      botUsername: siteConfig.telegramBotUsername,
+      configured: telegramConfig.configured,
+      botUsername: telegramConfig.botUsername,
+      configMessage: telegramConfig.configMessage,
       user,
     });
   }

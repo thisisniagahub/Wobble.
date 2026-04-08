@@ -35,8 +35,8 @@ export function JarComponent({
       <motion.div 
         className="relative w-full h-full flex items-center justify-center"
         animate={{
-          y: enableHover ? [0, -12, 0] : [0, -6, 0],
-          rotateZ: enableHover ? [0, 2, -1, 0] : [0, 1, -0.5, 0]
+          y: enableHover ? [0, -8, 0] : [0, -4, 0],
+          rotateZ: enableHover ? [0, 1.5, -0.75, 0] : [0, 0.75, -0.35, 0]
         }}
         transition={{
           duration: 4.5, // Fixed duration to resolve pure function lint

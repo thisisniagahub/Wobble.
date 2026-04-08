@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, Menu, X } from "lucide-react";
-import Image from "next/image";
 
 interface NavigationProps {
   currentScreen: string;
@@ -46,7 +45,7 @@ export function Navigation({
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2, ease: [0.32, 0.72, 0, 1] }}
-        className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-[92%] md:w-auto px-6 md:px-8 py-4 flex justify-between items-center z-50 text-white bg-black/60 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+        className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] max-w-[29rem] md:w-auto md:max-w-none px-4 md:px-8 py-3 md:py-3.5 flex justify-between items-center z-50 text-white bg-black/45 backdrop-blur-2xl border border-white/12 rounded-full shadow-[0_16px_40px_rgba(0,0,0,0.45)]"
         style={{ 
           marginBottom: 'var(--safe-area-inset-bottom, 0px)',
         }}
@@ -55,7 +54,7 @@ export function Navigation({
       >
         <button
           onClick={() => handleNavigate('home')}
-          className="flex items-center text-xl md:text-2xl font-black tracking-tight hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#FF6B9D] rounded-lg px-2 py-1"
+          className="flex items-center text-lg md:text-2xl font-black tracking-tight hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#FF6B9D] rounded-lg px-2 py-1"
           aria-label="Wobble home"
         >
           Wobble<span className="text-[#FF6B9D]">.</span>
@@ -85,7 +84,7 @@ export function Navigation({
           ))}
         </div>
 
-        <div className="flex items-center gap-4 ml-0 md:ml-12">
+        <div className="flex items-center gap-2 md:gap-4 ml-0 md:ml-12">
           <a
             href={whatsappOrderHref}
             target="_blank"
@@ -100,9 +99,20 @@ export function Navigation({
             order now <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
           </a>
 
+          <a
+            href={whatsappOrderHref}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex md:hidden items-center gap-2 rounded-full bg-white px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-black shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
+            aria-label="Order via WhatsApp (opens in new tab)"
+          >
+            <span className="h-2 w-2 rounded-full bg-[#25D366]" />
+            order
+          </a>
+
           <button
             type="button"
-            className="md:hidden p-2 focus:outline-none focus:ring-2 focus:ring-white rounded-full bg-white/10"
+            className="md:hidden p-2 focus:outline-none focus:ring-2 focus:ring-white rounded-full bg-white/[0.08]"
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMobileMenuOpen ? "true" : "false"}
             aria-controls="mobile-menu"
@@ -126,7 +136,7 @@ export function Navigation({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="fixed bottom-24 left-4 right-4 z-40 md:hidden"
+            className="fixed bottom-[calc(var(--bottom-nav-clearance)-0.25rem)] left-4 right-4 z-40 md:hidden"
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation menu"

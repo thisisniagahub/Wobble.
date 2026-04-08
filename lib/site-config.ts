@@ -23,6 +23,10 @@ function normalizePhone(value: string) {
   return digits;
 }
 
+export function normalizeTelegramUsername(value: string) {
+  return value.trim().replace(/^@/, "");
+}
+
 export const siteConfig = {
   name: "Wobble",
   description:
@@ -33,9 +37,9 @@ export const siteConfig = {
   whatsappNumber: normalizePhone(
     process.env.NEXT_PUBLIC_WOBBLE_WHATSAPP_NUMBER || "",
   ),
-  telegramBotUsername: (
-    process.env.NEXT_PUBLIC_WOBBLE_TELEGRAM_BOT_USERNAME || ""
-  ).trim(),
+  telegramBotUsername: normalizeTelegramUsername(
+    process.env.NEXT_PUBLIC_WOBBLE_TELEGRAM_BOT_USERNAME || "",
+  ),
   telegramAuthPath: DEFAULT_TELEGRAM_AUTH_PATH,
 };
 

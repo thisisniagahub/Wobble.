@@ -1,7 +1,9 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import { motion } from "motion/react";
+import { ArrowRight } from "lucide-react";
+import { buildWhatsAppHref } from "@/lib/site-config";
 import { JarComponent } from "../jar-component";
 
 interface Flavor {
@@ -19,31 +21,39 @@ interface Flavor {
   allergens: string[];
 }
 
+const FLAVOR_THEMES: Record<string, { background: string; glow: string }> = {
+  "mango-coconut": { background: "bg-gradient-to-b from-[#FFB800] to-[#C88A2E]", glow: "bg-[#FFB800]" },
+  "pandan": { background: "bg-gradient-to-b from-[#3A7D44] to-[#24522B]", glow: "bg-[#3A7D44]" },
+  "teh-tarik": { background: "bg-gradient-to-b from-[#C2410C] to-[#8A2D07]", glow: "bg-[#C2410C]" },
+  "salted-caramel": { background: "bg-gradient-to-b from-[#D97706] to-[#924E00]", glow: "bg-[#D97706]" },
+  "pistachio-kunafa": { background: "bg-gradient-to-b from-[#65A30D] to-[#3F6406]", glow: "bg-[#65A30D]" },
+  "jagung-susu": { background: "bg-gradient-to-b from-[#EAB308] to-[#9E7802]", glow: "bg-[#EAB308]" },
+};
+
+const defaultTheme = { background: "bg-white", glow: "bg-white" };
+
 interface FlavorCardProps {
   flavor: Flavor;
   index: number;
 }
 
 const FlavorCard = memo(({ flavor, index }: FlavorCardProps) => {
+  const whatsappFlavorHref = buildWhatsAppHref(
+    `Hi Wobble, saya nak order ${flavor.name} panna cotta. Boleh share availability?`,
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 100, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-10%" }}
       transition={{ delay: index * 0.05, duration: 0.6 }}
-      className="relative flex-none w-full md:flex-1 h-full snap-center overflow-hidden group cursor-pointer border-r border-white/5 last:border-0 transition-all duration-700 md:hover:flex-[3]"
+      className="relative flex-none w-full md:flex-1 h-full snap-center overflow-hidden group border-r border-white/5 last:border-0 transition-all duration-700 md:hover:flex-[3]"
     >
       {/* Premium Background */}
       <div
         className={`absolute inset-0 transition-transform duration-1000 group-hover:scale-105 ${
-          {
-            'mango-coconut': 'bg-gradient-to-b from-[#FFB800] to-[#C88A2E]',
-            'pandan-gula-melaka': 'bg-gradient-to-b from-[#3A7D44] to-[#24522B]',
-            'teh-tarik': 'bg-gradient-to-b from-[#C2410C] to-[#8A2D07]',
-            'salted-caramel': 'bg-gradient-to-b from-[#D97706] to-[#924E00]',
-            'pistachio-kunafa': 'bg-gradient-to-b from-[#65A30D] to-[#3F6406]',
-            'jagung-susu': 'bg-gradient-to-b from-[#EAB308] to-[#9E7802]'
-          }[flavor.id] || 'bg-white'
+          FLAVOR_THEMES[flavor.id]?.background ?? defaultTheme.background
         }`}
       />
 
@@ -72,14 +82,7 @@ const FlavorCard = memo(({ flavor, index }: FlavorCardProps) => {
             />
             {/* Ambient Glow */}
             <div className={`absolute inset-0 blur-[100px] rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-700 ${
-              {
-                'mango-coconut': 'bg-[#FFB800]',
-                'pandan-gula-melaka': 'bg-[#3A7D44]',
-                'teh-tarik': 'bg-[#C2410C]',
-                'salted-caramel': 'bg-[#D97706]',
-                'pistachio-kunafa': 'bg-[#65A30D]',
-                'jagung-susu': 'bg-[#EAB308]'
-              }[flavor.id] || 'bg-white'
+              FLAVOR_THEMES[flavor.id]?.glow ?? defaultTheme.glow
             }`} />
           </div>
         </div>
@@ -89,13 +92,29 @@ const FlavorCard = memo(({ flavor, index }: FlavorCardProps) => {
           <h3 className="text-4xl md:text-6xl font-black text-white mb-2 tracking-tighter uppercase leading-none">
             {flavor.name}
           </h3>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 mb-4">
             <div className="h-[2px] w-8 bg-white/20" />
             <span className="text-xl md:text-3xl font-black text-white/40 tracking-tighter tabular-nums">
               {flavor.price}
             </span>
             <div className="h-[2px] w-8 bg-white/20" />
           </div>
+          <p className="mx-auto mb-5 max-w-sm text-sm leading-relaxed text-white/72 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-500">
+            {flavor.subtitle}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-5 text-[9px] font-black uppercase tracking-[0.18em] text-white/80 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-500">
+            <span className="rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5">Fresh batch</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5">Cold delivery</span>
+          </div>
+          <a
+            href={whatsappFlavorHref}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Order ${flavor.name} on WhatsApp`}
+            className="inline-flex items-center justify-center gap-3 rounded-full bg-white px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black shadow-xl transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0"
+          >
+            order this flavour <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </a>
         </div>
       </div>
 

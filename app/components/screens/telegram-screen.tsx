@@ -23,6 +23,7 @@ type TelegramUser = {
 type SessionState = {
   authenticated: boolean;
   botUsername: string;
+  configMessage?: string;
   configured: boolean;
   error?: string;
   loading: boolean;
@@ -52,7 +53,7 @@ export function TelegramScreen({
   const widgetRef = useRef<HTMLDivElement | null>(null);
   const [session, setSession] = useState<SessionState>({
     authenticated: false,
-    botUsername: siteConfig.telegramBotUsername,
+    botUsername: "",
     configured: false,
     loading: true,
     user: null,
@@ -95,14 +96,14 @@ export function TelegramScreen({
 
     widgetHost.innerHTML = "";
 
-    if (session.authenticated || !siteConfig.telegramBotUsername) {
+    if (session.authenticated || !session.configured || !session.botUsername) {
       return;
     }
 
     const script = document.createElement("script");
     script.async = true;
     script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.setAttribute("data-telegram-login", siteConfig.telegramBotUsername);
+    script.setAttribute("data-telegram-login", session.botUsername);
     script.setAttribute("data-size", "large");
     script.setAttribute("data-radius", "999");
     script.setAttribute("data-request-access", "write");
@@ -112,7 +113,7 @@ export function TelegramScreen({
     );
 
     widgetHost.appendChild(script);
-  }, [session.authenticated]);
+  }, [session.authenticated, session.botUsername, session.configured]);
 
   async function handleLogout() {
     await fetch("/api/auth/telegram?action=logout", {
@@ -127,6 +128,11 @@ export function TelegramScreen({
     session.user?.first_name ||
     session.user?.username ||
     "Wobble guest";
+  const sessionHeading = session.authenticated
+    ? "Connected"
+    : session.configured
+      ? "Login Ready"
+      : "Setup Needed";
 
   return (
     <motion.div
@@ -225,7 +231,7 @@ export function TelegramScreen({
                 session status
               </p>
               <h3 className="mt-3 text-3xl font-black uppercase tracking-tighter">
-                {session.authenticated ? "Connected" : "Login Ready"}
+                {sessionHeading}
               </h3>
             </div>
 
@@ -281,20 +287,21 @@ export function TelegramScreen({
             ) : (
               <div className="space-y-5">
                 <p className="text-sm leading-relaxed text-white/55">
-                  Login widget akan muncul di bawah bila
-                  `NEXT_PUBLIC_WOBBLE_TELEGRAM_BOT_USERNAME` dan
-                  `WOBBLE_TELEGRAM_BOT_TOKEN` diset pada environment deploy.
+                  {session.configured
+                    ? `Login widget di bawah akan guna bot @${session.botUsername}.`
+                    : session.configMessage ||
+                      "Telegram login belum cukup config. Lengkapkan bot username dan bot token pada deploy environment."}
                 </p>
 
-                {siteConfig.telegramBotUsername ? (
+                {session.configured && session.botUsername ? (
                   <div
                     ref={widgetRef}
                     className="flex min-h-14 items-center justify-start"
                   />
                 ) : (
                   <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-5 py-4 text-sm leading-relaxed text-white/45">
-                    Bot username belum diisi. Set nilai env untuk aktifkan widget
-                    Telegram sebenar pada production.
+                    {session.configMessage ||
+                      "Telegram login belum aktif sepenuhnya pada environment ini."}
                   </div>
                 )}
               </div>
